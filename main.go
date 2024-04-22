@@ -17,9 +17,6 @@ func main() {
 }
 
 func onReady() {
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, "Skip", false)
-
 	systray.SetTemplateIcon(icon.Data, icon.Data)
 
 	clips := make([]string, MaxHistory)
@@ -39,6 +36,7 @@ func onReady() {
 		systray.Quit()
 	}()
 
+	ctx := context.WithValue(context.Background(), "Skip", false)
 	ch := clipboard.Watch(ctx, clipboard.FmtText)
 	currIdx := 0
 
@@ -62,14 +60,14 @@ func onReady() {
 				menus[i].Check()
 			}
 
-			go func() {
+			go func(i int) {
 				<-menus[i].ClickedCh
 				ctx = context.WithValue(ctx, "Skip", true)
 				menus[currIdx].Uncheck()
 				menus[i].Check()
 				currIdx = i
 				clipboard.Write(clipboard.FmtText, []byte(clips[i]))
-			}()
+			}(i)
 		}
 	}
 }
